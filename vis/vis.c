@@ -628,6 +628,15 @@ static void vis_jsondoc_preamble(void)
 	printf("  \"vis\" : [\n");
 }
 
+static void vis_netjson_preamble(void)
+{
+	printf("{\n");
+	printf("  \"type\" : \"NetworkGraph\",\n");
+	printf("  \"version\" : \"%s\",\n", SOURCE_VERSION);
+	printf("  \"metric\" : \"TQ\",\n");
+	printf("  \"nodes\" : [\n");
+}
+
 static void vis_jsondoc_interfaces(uint8_t iface_n, struct vis_iface *ifaces)
 {
 	int i;
@@ -642,6 +651,30 @@ static void vis_jsondoc_interfaces(uint8_t iface_n, struct vis_iface *ifaces)
 	if (iface_n > 1) {
 		printf("      \"secondary\" : [ ");
 		for (i = 1; i < iface_n; i++) {
+			printf("\"%s\"", mac_to_str(ifaces[i].mac));
+			if ( i < iface_n - 1)
+				printf(",");
+		}
+		printf("\n       ],\n");
+	}
+}
+
+static void vis_netjson_interfaces(uint8_t iface_n, struct vis_iface *ifaces)
+{
+	int i;
+	static bool first_interface = true;
+
+	if (first_interface)
+		first_interface = false;
+	else
+		printf(",\n");
+
+	printf("    { \"id\" : \"%s\",\n", mac_to_str(ifaces[0].mac));
+	if (iface_n > 1)
+	{
+		printf("      \"local_addresses\" : [ ");
+		for (i = 1; i < iface_n; i++)
+		{
 			printf("\"%s\"", mac_to_str(ifaces[i].mac));
 			if ( i < iface_n - 1)
 				printf(",");
@@ -706,7 +739,73 @@ static void vis_jsondoc_entries(uint8_t entries_n,
 	printf("    }");
 }
 
+static void vis_netjson_entries(uint8_t entries_n,
+				struct vis_entry *vis_entries,
+				uint8_t iface_n, struct vis_iface *ifaces)		// PROSEGUIRE
+{
+	bool first_neighbor = true;
+	bool first_tt = true;
+	int i;
+
+	/* Questa roba in NetJSON viene eseguita molto dopo, verso la fine del file
+	printf("      \"neighbors\" : [\n");
+
+	for (i = 0; i < entries_n; i++) {
+		if (vis_entries[i].ifindex == 255) {
+			continue;
+		}
+
+		if (vis_entries[i].ifindex >= iface_n) {
+			fprintf(stderr, "ERROR: bad ifindex ...\n");
+			continue;
+		}
+		if (vis_entries[i].qual == 0) {
+			fprintf(stderr, "ERROR: quality = 0?\n");
+			continue;
+		}
+
+		if (first_neighbor)
+			first_neighbor = false;
+		else
+			printf(",\n");
+
+		printf("         { \"router\" : \"%s\",\n",
+		       mac_to_str(ifaces[vis_entries[i].ifindex].mac));
+		printf("           \"neighbor\" : \"%s\",\n",
+		       mac_to_str(vis_entries[i].mac));
+		printf("           \"metric\" : \"%3.3f\" }",
+		       255.0 / ((float)vis_entries[i].qual));
+	}
+
+	printf("\n      ],\n");
+*/
+
+	printf("      \"properties\" : {\n");
+	printf("            \"clients\" : [\n");
+
+	for (i = 0; i < entries_n; i++) {
+		if (vis_entries[i].ifindex == 255) {
+			if (first_tt)
+				first_tt = false;
+			else
+				printf(",\n");
+
+			printf("        \"%s\"",
+			       mac_to_str(vis_entries[i].mac));
+		}
+	}
+	printf("\n            ]\n");
+	printf("          }");
+	printf("    }");
+}
+
 static void vis_jsondoc_postamble(void)
+{
+	printf("\n  ]\n");
+	printf("}\n");
+}
+
+static void vis_netjson_postamble(void)
 {
 	printf("\n  ]\n");
 	printf("}\n");
@@ -745,6 +844,14 @@ static const struct vis_print_ops vis_jsondoc_ops =
 	vis_jsondoc_postamble
 };
 
+static const struct vis_print_ops vis_netjson_ops =
+{
+	vis_netjson_preamble,
+	vis_netjson_interfaces,
+	vis_netjson_entries,
+	vis_netjson_postamble
+};
+
 static int vis_read_answer(struct globals *globals)
 {
 	const struct vis_print_ops *ops;
@@ -759,6 +866,9 @@ static int vis_read_answer(struct globals *globals)
 		break;
 	case FORMAT_JSON:
 		ops = &vis_json_ops;
+		break;
+	case FORMAT_NETJSON:
+		ops = &vis_netjson_ops;
 		break;
 	case FORMAT_JSONDOC:
 		ops = &vis_jsondoc_ops;
@@ -814,7 +924,7 @@ static void vis_usage(void)
 	printf("Usage: batadv-vis [options]\n");
 	printf("  -i, --interface             specify the batman-adv interface configured on the system (default: bat0)\n");
 	printf("  -s, --server                start up in server mode, which regularly updates vis data from batman-adv\n");
-	printf("  -f, --format <format>       specify the output format for client mode (either \"json\", \"jsondoc\" or \"dot\")\n");
+	printf("  -f, --format <format>       specify the output format for client mode (either \"json\", \"netjson\", \"jsondoc\" or \"dot\")\n");
 	printf("  -u, --unix-path <path>      path to unix socket used for alfred server communication (default: \""ALFRED_SOCK_PATH_DEFAULT"\")\n");
 	printf("  -v, --version               print the version\n");
 	printf("  -h, --help                  this help\n");
@@ -852,6 +962,8 @@ static struct globals *vis_init(int argc, char *argv[])
 		case 'f':
 			if (strncmp(optarg, "dot", 3) == 0)
 				globals->vis_format = FORMAT_DOT;
+			else if (strncmp(optarg, "netjson", 7) == 0)
+				globals->vis_format = FORMAT_NETJSON;
 			else if (strncmp(optarg, "jsondoc", 7) == 0)
 				globals->vis_format = FORMAT_JSONDOC;
 			else if (strncmp(optarg, "json", 4) == 0)
