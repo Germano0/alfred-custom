@@ -75,6 +75,18 @@ struct vis_v1 {
 	 */
 }__packed;
 
+struct vis_v1_extended
+{
+	struct vis_v1_extended* next;
+	uint8_t mac[ETH_ALEN];
+	uint8_t iface_n;
+	uint8_t entries_n;
+	__extension__ struct vis_iface ifaces[0]; /* #iface_n of this */
+	/* following:
+	 * #vis_entries of vis_entry structs
+	 */
+}__packed;
+
 struct iface_list_entry {
 	char name[256];
 	uint8_t mac[ETH_ALEN];

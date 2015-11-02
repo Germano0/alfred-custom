@@ -739,6 +739,24 @@ static void vis_jsondoc_entries(uint8_t entries_n,
 	printf("    }");
 }
 
+void insert_netjson_entry(struct vis_v1_extended **vis_data_collection_head, struct vis_v1 data)
+{
+	struct vis_v1_extended *p;
+	p = malloc(sizeof(struct vis_v1_extended));
+	if(p == NULL)
+	{
+		perror("malloc failure\n");
+		exit(EXIT_FAILURE);
+	}
+	p->entries_n = data->entries_n;
+	p->iface_n = data->iface_n;
+	p->ifaces = data->ifaces;
+	p->mac = data->mac;
+	p->next = *vis_data_collection_head;
+	*vis_data_collection_head = p;
+
+}
+
 static void vis_netjson_entries(uint8_t entries_n,
 				struct vis_entry *vis_entries,
 				uint8_t iface_n, struct vis_iface *ifaces)		// PROSEGUIRE
@@ -746,40 +764,6 @@ static void vis_netjson_entries(uint8_t entries_n,
 	bool first_neighbor = true;
 	bool first_tt = true;
 	int i;
-
-	/* Questa roba in NetJSON viene eseguita molto dopo, verso la fine del file
-	printf("      \"neighbors\" : [\n");
-
-	for (i = 0; i < entries_n; i++) {
-		if (vis_entries[i].ifindex == 255) {
-			continue;
-		}
-
-		if (vis_entries[i].ifindex >= iface_n) {
-			fprintf(stderr, "ERROR: bad ifindex ...\n");
-			continue;
-		}
-		if (vis_entries[i].qual == 0) {
-			fprintf(stderr, "ERROR: quality = 0?\n");
-			continue;
-		}
-
-		if (first_neighbor)
-			first_neighbor = false;
-		else
-			printf(",\n");
-
-		printf("         { \"router\" : \"%s\",\n",
-		       mac_to_str(ifaces[vis_entries[i].ifindex].mac));
-		printf("           \"neighbor\" : \"%s\",\n",
-		       mac_to_str(vis_entries[i].mac));
-		printf("           \"metric\" : \"%3.3f\" }",
-		       255.0 / ((float)vis_entries[i].qual));
-	}
-
-	printf("\n      ],\n");
-*/
-
 	printf("      \"properties\" : {\n");
 	printf("            \"clients\" : [\n");
 
@@ -856,6 +840,7 @@ static int vis_read_answer(struct globals *globals)
 {
 	const struct vis_print_ops *ops;
 	struct vis_v1 *vis_data;
+	struct vis_v1_extended* vis_data_collection_head = NULL;
 	uint16_t len;
 	struct vis_iface *ifaces;
 	struct vis_entry *vis_entries;
@@ -869,7 +854,41 @@ static int vis_read_answer(struct globals *globals)
 		break;
 	case FORMAT_NETJSON:
 		ops = &vis_netjson_ops;
-		break;
+
+		// ho copiato e modificato il codice preso a partire da etichetta "ciclo",
+		// così posso modificarlo senza causar problemi alle altre strutture dati
+		ops->preamble();
+
+		while ((vis_data =	vis_receive_answer_packet(globals->unix_sock, &len)) != NULL)
+		{
+			if (len < sizeof(*vis_data))
+				return -1;
+
+			/* check size and skip bogus packets */
+			if (len != VIS_DATA_SIZE(vis_data))
+				continue;
+
+			if (vis_data->iface_n == 0)
+				continue;
+
+
+			ifaces = vis_data->ifaces;
+			vis_entries = (struct vis_entry *) &ifaces[vis_data->iface_n];
+
+			ops->interfaces(vis_data->iface_n, ifaces);
+
+			if (vis_data->entries_n == 0)
+				continue;
+
+			ops->entries(vis_data->entries_n, vis_entries,
+					 vis_data->iface_n, ifaces);
+			insert_netjson_entry(&vis_data_collection_head, vis_data)
+		}
+
+
+		ops->postamble();
+
+		return 0;
 	case FORMAT_JSONDOC:
 		ops = &vis_jsondoc_ops;
 		break;
@@ -877,10 +896,12 @@ static int vis_read_answer(struct globals *globals)
 		return -1;
 	}
 
+	// ciclo:
 	ops->preamble();
 
 	while ((vis_data =
-		vis_receive_answer_packet(globals->unix_sock, &len)) != NULL) {
+		vis_receive_answer_packet(globals->unix_sock, &len)) != NULL)
+	{
 		if (len < sizeof(*vis_data))
 			return -1;
 
