@@ -840,7 +840,7 @@ static int vis_read_answer(struct globals *globals)
 {
 	const struct vis_print_ops *ops;
 	struct vis_v1 *vis_data;
-	struct vis_v1_extended* vis_data_collection_head = NULL;
+	struct vis_v1_extended* vis_data_collection_head;
 	uint16_t len;
 	struct vis_iface *ifaces;
 	struct vis_entry *vis_entries;
@@ -882,7 +882,7 @@ static int vis_read_answer(struct globals *globals)
 
 			ops->entries(vis_data->entries_n, vis_entries,
 					 vis_data->iface_n, ifaces);
-			insert_netjson_entry(&vis_data_collection_head, vis_data)
+			insert_netjson_entry(&vis_data_collection_head, vis_data);
 		}
 
 
