@@ -739,7 +739,7 @@ static void vis_jsondoc_entries(uint8_t entries_n,
 	printf("    }");
 }
 
-void insert_netjson_entry(struct vis_v1_extended **vis_data_collection_head, struct vis_v1 data)
+void insert_netjson_entry(struct vis_v1_extended **vis_data_collection_head, struct vis_v1* data)
 {
 	struct vis_v1_extended *p;
 	p = malloc(sizeof(struct vis_v1_extended));
@@ -839,8 +839,8 @@ static const struct vis_print_ops vis_netjson_ops =
 static int vis_read_answer(struct globals *globals)
 {
 	const struct vis_print_ops *ops;
-	struct vis_v1 *vis_data;
-	struct vis_v1_extended* vis_data_collection_head;
+	struct vis_v1* vis_data;
+	struct vis_v1_extended* vis_data_collection_head = NULL;
 	uint16_t len;
 	struct vis_iface *ifaces;
 	struct vis_entry *vis_entries;
