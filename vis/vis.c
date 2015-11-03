@@ -739,7 +739,7 @@ static void vis_jsondoc_entries(uint8_t entries_n,
 	printf("    }");
 }
 
-void insert_netjson_entry(struct vis_v1_extended **vis_data_collection_head, struct vis_v1* data)
+void insert_netjson_entry(struct vis_v1_extended** vis_data_collection_head, struct vis_v1* data)
 {
 	struct vis_v1_extended *p;
 	p = malloc(sizeof(struct vis_v1_extended));
@@ -748,11 +748,12 @@ void insert_netjson_entry(struct vis_v1_extended **vis_data_collection_head, str
 		perror("malloc failure\n");
 		exit(EXIT_FAILURE);
 	}
-	p.entries_n = (*data).entries_n;
-	p.iface_n = (*data).iface_n;
-	p.ifaces = (*data).ifaces;
-	p.mac = (*data).mac;
-	p->next = *vis_data_collection_head;
+	p->entries_n = data->entries_n;
+	p->iface_n = data->iface_n;
+	strncpy(p->ifaces, data->ifaces, sizeof(p->ifaces));
+	strncpy(p->mac,data->mac,sizeof(p->mac));
+
+	//p->next = *vis_data_collection_head;
 	*vis_data_collection_head = p;
 
 }
