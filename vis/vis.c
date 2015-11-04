@@ -886,6 +886,23 @@ static int vis_read_answer(struct globals *globals)
 			insert_netjson_entry(&vis_data_collection_head, vis_data);
 		}
 
+		printf("MMMOBBBASTA\n");
+		printf("MMMOBBBASTA\n");
+		printf("MMMOBBBASTA\n");
+		printf("MMMOBBBASTA\n");
+		printf("MMMOBBBASTA\n");
+		printf("MMMOBBBASTA\n");
+		printf("MMMOBBBASTA\n");
+
+		ifaces = vis_data_collection_head->ifaces;
+		vis_entries = (struct vis_entry *) &ifaces[vis_data->iface_n];
+
+		ops->interfaces(vis_data->iface_n, ifaces);
+
+
+
+		ops->entries(vis_data_collection_head->entries_n, vis_entries,
+				vis_data_collection_head->iface_n, ifaces);
 
 		ops->postamble();
 
