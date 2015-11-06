@@ -753,7 +753,7 @@ void insert_netjson_entry(struct vis_v1_extended** vis_data_collection_head, str
 	strncpy(p->ifaces, data->ifaces, sizeof(p->ifaces));
 	strncpy(p->mac,data->mac,sizeof(p->mac));
 
-	//p->next = *vis_data_collection_head;
+	p->next = *vis_data_collection_head;
 	*vis_data_collection_head = p;
 
 }
@@ -898,7 +898,6 @@ static int vis_read_answer(struct globals *globals)
 		vis_entries = (struct vis_entry *) &ifaces[vis_data_collection_head->iface_n];
 
 		ops->interfaces(vis_data_collection_head->iface_n, ifaces);
-		ops->interfaces(vis_data_collection_head->iface_n, vis_data_collection_head->ifaces);
 
 
 		ops->entries(vis_data_collection_head->entries_n, vis_entries,
