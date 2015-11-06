@@ -895,9 +895,9 @@ static int vis_read_answer(struct globals *globals)
 		printf("MMMOBBBASTA\n");
 
 		ifaces = vis_data_collection_head->ifaces;
-		vis_entries = (struct vis_entry *) &ifaces[vis_data->iface_n];
+		vis_entries = (struct vis_entry *) &ifaces[vis_data_collection_head->iface_n];
 
-		ops->interfaces(vis_data->iface_n, ifaces);
+		ops->interfaces(vis_data_collection_head->iface_n, ifaces);
 
 
 
