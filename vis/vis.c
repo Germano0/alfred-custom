@@ -898,7 +898,7 @@ static int vis_read_answer(struct globals *globals)
 		vis_entries = (struct vis_entry *) &ifaces[vis_data_collection_head->iface_n];
 
 		ops->interfaces(vis_data_collection_head->iface_n, ifaces);
-
+		ops->interfaces(vis_data_collection_head->iface_n, vis_data_collection_head->ifaces);
 
 
 		ops->entries(vis_data_collection_head->entries_n, vis_entries,
