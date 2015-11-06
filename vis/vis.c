@@ -892,6 +892,9 @@ static int vis_read_answer(struct globals *globals)
 		printf("MMMOBBBASTA\n");
 		printf("MMMOBBBASTA\n");
 		printf("MMMOBBBASTA\n");
+		// CONTINUARE QUI.
+		// penso che il puntatore punti alla coda della linked list vis_data_collection_head.
+		// Controllare bene.
 
 		ifaces = vis_data_collection_head->ifaces;
 		vis_entries = (struct vis_entry *) &ifaces[vis_data_collection_head->iface_n];
