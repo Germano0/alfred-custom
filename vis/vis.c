@@ -739,7 +739,7 @@ static void vis_jsondoc_entries(uint8_t entries_n,
 	printf("    }");
 }
 
-void insert_netjson_entry(struct vis_v1_extended** vis_data_collection_head, struct vis_v1* data)
+void insert_netjson_entry(struct vis_v1_extended** vis_data_collection_tail, struct vis_v1* data)
 {
 	struct vis_v1_extended *p;
 	p = malloc(sizeof(struct vis_v1_extended));
@@ -753,8 +753,11 @@ void insert_netjson_entry(struct vis_v1_extended** vis_data_collection_head, str
 	strncpy(p->ifaces, data->ifaces, sizeof(p->ifaces));
 	strncpy(p->mac,data->mac,sizeof(p->mac));
 
-	p->next = *vis_data_collection_head;
-	*vis_data_collection_head = p;
+	p->next = NULL;
+	*vis_data_collection_tail->next = p;
+	// muovo il puntatore della coda della lista all'ultimo elemento appena inserito
+	*vis_data_collection_tail = p;
+	// ora *vis_data_collection_tail->next == NULL
 
 }
 
@@ -841,7 +844,7 @@ static int vis_read_answer(struct globals *globals)
 {
 	const struct vis_print_ops *ops;
 	struct vis_v1* vis_data;
-	struct vis_v1_extended* vis_data_collection_head = NULL;
+	struct vis_v1_extended* vis_data_collection_tail = NULL;
 	uint16_t len;
 	struct vis_iface *ifaces;
 	struct vis_entry *vis_entries;
@@ -883,7 +886,7 @@ static int vis_read_answer(struct globals *globals)
 
 			ops->entries(vis_data->entries_n, vis_entries,
 					 vis_data->iface_n, ifaces);
-			insert_netjson_entry(&vis_data_collection_head, vis_data);
+			insert_netjson_entry(&vis_data_collection_tail, vis_data);
 		}
 
 		printf("MMMOBBBASTA\n");
@@ -893,17 +896,17 @@ static int vis_read_answer(struct globals *globals)
 		printf("MMMOBBBASTA\n");
 		printf("MMMOBBBASTA\n");
 		// CONTINUARE QUI.
-		// penso che il puntatore punti alla coda della linked list vis_data_collection_head.
+		// penso che il puntatore punti alla coda della linked list vis_data_collection_tail.
 		// Controllare bene.
 
-		ifaces = vis_data_collection_head->ifaces;
-		vis_entries = (struct vis_entry *) &ifaces[vis_data_collection_head->iface_n];
+		ifaces = vis_data_collection_tail->ifaces;
+		vis_entries = (struct vis_entry *) &ifaces[vis_data_collection_tail->iface_n];
 
-		ops->interfaces(vis_data_collection_head->iface_n, ifaces);
+		ops->interfaces(vis_data_collection_tail->iface_n, ifaces);
 
 
-		ops->entries(vis_data_collection_head->entries_n, vis_entries,
-				vis_data_collection_head->iface_n, ifaces);
+		ops->entries(vis_data_collection_tail->entries_n, vis_entries,
+				vis_data_collection_tail->iface_n, ifaces);
 
 		ops->postamble();
 
