@@ -741,7 +741,7 @@ static void vis_jsondoc_entries(uint8_t entries_n,
 
 void insert_netjson_entry(struct vis_v1_extended** vis_data_collection_tail, struct vis_v1* data)
 {
-	struct vis_v1_extended *p;
+	struct vis_v1_extended* p;
 	p = malloc(sizeof(struct vis_v1_extended));
 	if(p == NULL)
 	{
@@ -754,9 +754,9 @@ void insert_netjson_entry(struct vis_v1_extended** vis_data_collection_tail, str
 	strncpy(p->mac,data->mac,sizeof(p->mac));
 
 	p->next = NULL;
-	*vis_data_collection_tail->next = p;
+	(*vis_data_collection_tail)->next = p;
 	// muovo il puntatore della coda della lista all'ultimo elemento appena inserito
-	//*vis_data_collection_tail = p;
+	(*vis_data_collection_tail) = p;
 	// ora *vis_data_collection_tail->next == NULL
 
 }
