@@ -753,10 +753,14 @@ void insert_netjson_entry(struct vis_v1_extended** vis_data_collection_tail, str
 	strncpy(p->ifaces, data->ifaces, sizeof(p->ifaces));
 	strncpy(p->mac,data->mac,sizeof(p->mac));
 
-	p->next = NULL;
-	(*vis_data_collection_tail)->next = p;
+	p->next = *vis_data_collection_tail;
+	*vis_data_collection_tail = p;
+	
+	// OLD
+	//p->next = NULL;
+	//(*vis_data_collection_tail)->next = p;
 	// muovo il puntatore della coda della lista all'ultimo elemento appena inserito
-	(*vis_data_collection_tail) = p;
+	//(*vis_data_collection_tail) = p;
 	// ora *vis_data_collection_tail->next == NULL
 
 }
